@@ -53,7 +53,25 @@ Teller(int id) { this.id = id; }
                 }
                 tellerReadyCount.release();
 
-                // TODO: serve customers
+               // serve customers one at a time
+                while (true) {
+                    tellerReady[id].release();        // signal available
+                    customerArrived[id].acquire();    // wait for customer
+
+                    System.out.println("Teller " + id + " [Teller " + id + "]: asks for transaction");
+                    transactionReady[id].release();   // ask for transaction
+                    transactionReady[id].acquire();   // wait for answer
+
+                    int type = transactionType[id];
+                    String typeName = (type == 0) ? "deposit" : "withdraw";
+                    System.out.println("Teller " + id + " [Teller " + id + "]: handling " + typeName);
+
+                    // TODO: safe and manager logic
+
+                    transactionDone[id].release();    // tell customer done
+                    customerLeaving[id].acquire();    // wait for customer to leave
+                    System.out.println("Teller " + id + " [Teller " + id + "]: ready for next customer");
+                }
 
             } catch (Exception e) { System.out.println(e); }
         }
@@ -66,12 +84,6 @@ Teller(int id) { this.id = id; }
         Customer(int id) {
             this.id = id;
         }
-
-
-
-
-         public void run() {
-
             public void run() {
             try {
                 int type = rand.nextInt(2); // 0=deposit 1=withdraw
