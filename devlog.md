@@ -20,3 +20,9 @@ the transaction. I will need a semaphore array, one per teller, for things like
 - Get all threads launching and printing a simple "Teller X ready" / "Customer Y entering"
   message so I can confirm the thread structure works
 - Commit the skeleton
+
+## Thoughts  0322
+Thread skeleton is working. All 50 customers and 3 tellers launch and print.
+Order is random which is expected. Added semaphore declarations for bankOpen,
+door, safe, managerLock, lineLock, and per-teller arrays for the handshake steps.
+Bank-open gate is in place — customers will block until all 3 tellers signal ready.
