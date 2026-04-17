@@ -60,7 +60,8 @@ doing anything, then respect the door limit of 2 at a time.
 Finding a free teller requires a mutex around the search so two
 customers don't grab the same teller simultaneously.
 
-** error ** had the teller and the customer run mixed failed to run
+## error  
+had the teller and the customer run mixed failed to run
 
 **Accomplishments:** Customer now sleeps 0-100ms before arriving,
 acquires bankOpen then door semaphore to enter. Uses lineLock mutex
