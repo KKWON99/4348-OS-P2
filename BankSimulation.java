@@ -23,6 +23,8 @@ public class BankSimulation {
     // Shared variables for teller-customer communication
     static int[] transactionType = new int[NUM_TELLERS];
     static int   tellersReady    = 0;
+    static int   customersServed = 0; 
+    static Semaphore customersServedLock = new Semaphore(1);
     static Semaphore tellerReadyCount = new Semaphore(1);
     static Random rand = new Random();
 
@@ -55,6 +57,14 @@ Teller(int id) { this.id = id; }
 
                // serve customers one at a time
                 while (true) {
+
+                    customersServedLock.acquire();
+                    if (customersServed >= NUM_CUSTOMERS) {
+                        customersServedLock.release();
+                        break;
+                    }
+                    customersServedLock.release();
+
                     tellerReady[id].release();        // signal available
                     customerArrived[id].acquire();    // wait for customer
 
