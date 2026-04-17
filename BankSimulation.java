@@ -66,12 +66,35 @@ Teller(int id) { this.id = id; }
                     String typeName = (type == 0) ? "deposit" : "withdraw";
                     System.out.println("Teller " + id + " [Teller " + id + "]: handling " + typeName);
 
-                    // TODO: safe and manager logic
+                    // withdraw requires manager permission
+                    if (type == 1) {
+                        System.out.println("Teller " + id + " [Teller " + id + "]: going to manager");
+                        managerLock.acquire();
+                        System.out.println("Teller " + id + " [Teller " + id + "]: with manager");
+                        Thread.sleep(5 + rand.nextInt(26)); // 5-30ms
+                        System.out.println("Teller " + id + " [Teller " + id + "]: leaving manager");
+                        managerLock.release();
+                    }
 
-                    transactionDone[id].release();    // tell customer done
-                    customerLeaving[id].acquire();    // wait for customer to leave
+                    // enter safe (max 2 tellers at once)
+                    System.out.println("Teller " + id + " [Teller " + id + "]: going to safe");
+                    safe.acquire();
+                    System.out.println("Teller " + id + " [Teller " + id + "]: in the safe");
+                    Thread.sleep(10 + rand.nextInt(41)); // 10-50ms
+                    System.out.println("Teller " + id + " [Teller " + id + "]: leaving the safe");
+                    safe.release();
+
+                    transactionDone[id].release();
+                    customerLeaving[id].acquire();
+
+                    // count this customer as served
+                    customersServedLock.acquire();
+                    customersServed++;
                     System.out.println("Teller " + id + " [Teller " + id + "]: ready for next customer");
+                    customersServedLock.release();
                 }
+
+                System.out.println("Teller " + id + " [Teller " + id + "]: going home");
 
             } catch (Exception e) { System.out.println(e); }
         }
