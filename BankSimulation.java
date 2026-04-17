@@ -12,7 +12,7 @@ public class BankSimulation {
     static Semaphore managerLock = new Semaphore(1);
     static Semaphore lineLock    = new Semaphore(1);
 
-    // 6 distinct semaphores to guarantee perfect turn-taking
+    // 6 distinct semaphores forperfect turn-taking
     static Semaphore[] tellerAvailable     = new Semaphore[NUM_TELLERS];
     static Semaphore[] customerArrived     = new Semaphore[NUM_TELLERS];
     static Semaphore[] tellerAsked         = new Semaphore[NUM_TELLERS];
@@ -143,7 +143,7 @@ public class BankSimulation {
 
                 System.out.println("Customer " + id + " []: selecting a teller.");
 
-                // Safe line logic: Poll until a teller is strictly available
+                // Safe line logic
                 int myTeller = -1;
                 while (myTeller == -1) {
                     lineLock.acquire();
