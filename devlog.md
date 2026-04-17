@@ -8,7 +8,7 @@ the manager (only 1 teller at a time), and the customer line. The bank cannot op
 all 3 tellers are ready, so customers must block until that happens.
 
 The trickiest part will be the per-pair signaling between a specific customer and a
-specific teller — they need to signal each other back and forth multiple times through
+specific teller they need to signal each other back and forth multiple times through
 the transaction. I will need a semaphore array, one per teller, for things like
 "customer has arrived", "teller asked for transaction", "customer gave transaction", etc.
 
