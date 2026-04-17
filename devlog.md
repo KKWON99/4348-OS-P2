@@ -1,4 +1,4 @@
-#start of project  4/17/2026
+#start of project  4/16/2026
 
 ### Thoughts about the project
 Project 2 is a bank simulation using threads and semaphores in Java.
