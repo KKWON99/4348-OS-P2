@@ -96,7 +96,17 @@ Teller(int id) { this.id = id; }
                     }
                 }
                 lineLock.release();
-            System.out.println("Customer " + id + " [Customer " + id + "]: is entering the bank");
+            // if no teller free, wait in line
+                if (myTeller == -1) {
+                    tellerReady[id % NUM_TELLERS].acquire();
+                    myTeller = id % NUM_TELLERS;
+                }
+
+                System.out.println("Customer " + id + " [Customer " + id + "]: selects Teller " + myTeller);
+
+                // TODO: handshake with teller
+
+            } catch (Exception e) { System.out.println(e); }
         }
     }
 
