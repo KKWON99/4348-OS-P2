@@ -118,33 +118,36 @@ Teller(int id) { this.id = id; }
             this.id = id;
         }
             public void run() {
-            try {
-                int type = rand.nextInt(2); // 0=deposit 1=withdraw
-                String typeName = (type == 0) ? "deposit" : "withdraw";
+    try {
+        int type = rand.nextInt(2);
+        String typeName = (type == 0) ? "deposit" : "withdraw";
 
-                // wait between 0-100ms before going to bank
-                Thread.sleep(rand.nextInt(101));
+        // decide transaction before even going to bank
+        System.out.println("Customer " + id + " [Customer " + id + "]: wants to " + typeName);
 
-                // wait for bank to open, then enter through door (max 2 at once)
-                bankOpen.acquire();
+        // wait 0-100ms before heading to bank
+        Thread.sleep(rand.nextInt(101));
+
+        bankOpen.acquire();
                 door.acquire();
                 System.out.println("Customer " + id + " [Customer " + id + "]: is entering the bank");
                 door.release();
 
-                // find a free teller
+                // get in line, scan for free teller
+                System.out.println("Customer " + id + " [Customer " + id + "]: getting in line");
                 lineLock.acquire();
                 int myTeller = -1;
                 for (int i = 0; i < NUM_TELLERS; i++) {
-                    if (tellerReady[i].tryAcquire()) {
-                        myTeller = i;
-                        break;
-                    }
+                    if (tellerReady[i].tryAcquire()) { myTeller = i; break; }
                 }
                 lineLock.release();
-            // if no teller free, wait in line
-                if (myTeller == -1) {
-                    tellerReady[id % NUM_TELLERS].acquire();
-                    myTeller = id % NUM_TELLERS;
+
+                // no teller free, poll until one opens up
+                while (myTeller == -1) {
+                    for (int i = 0; i < NUM_TELLERS; i++) {
+                        if (tellerReady[i].tryAcquire()) { myTeller = i; break; }
+                    }
+                    if (myTeller == -1) Thread.sleep(1);
                 }
 
 
