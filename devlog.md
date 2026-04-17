@@ -26,3 +26,8 @@ Thread skeleton is working. All 50 customers and 3 tellers launch and print.
 Order is random which is expected. Added semaphore declarations for bankOpen,
 door, safe, managerLock, lineLock, and per-teller arrays for the handshake steps.
 Bank-open gate is in place — customers will block until all 3 tellers signal ready.
+
+## error
+Git kept rejecting pushes due to non-fast-forward errors. Remote was ahead of local.
+Fixed by running git pull --no-rebase before pushing. Also got stuck in vim when
+git opened the merge message editor. Escaped with :wq
