@@ -1,4 +1,4 @@
-#start of project  4/17/2026
+#start of project  4/17/2026 02:04 am
 
 ### Thoughts so far
 This project is a bank simulation using Java threads and semaphores. There are 3 tellers
