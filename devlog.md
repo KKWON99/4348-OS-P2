@@ -104,3 +104,15 @@ Synchronization Verification: Verified that the safe semaphore correctly restric
 Graceful Exit: Added System.exit(0) to ensure all threads terminate and the program closes cleanly after the 50th customer is served.
 
 
+## final thoughts
+The project is nearing completion. The primary challenge was coordinating the "handshake" between 50 customer threads and 3 teller threads without creating deadlocks. I focused heavily on ensuring that shared resources like the bank manager and the safe were strictly managed by semaphores to meet the project's concurrency requirements.
+
+
+## issue found
+
+The program is hanging/freezing after customers enter — tellers aren't finishing serving them
+The sample shows Customer X [Teller Y]: format but mine just shows Teller X [Teller X]:
+
+
+
+
