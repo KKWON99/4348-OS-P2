@@ -116,5 +116,23 @@ The sample shows Customer X [Teller Y]: format but mine just shows Teller X [Tel
 ## issue found
 Keep having race condition that turns in to deadlock **1705**
 
+## April 18, 2026 - simulation complete 1740
 
+**Thoughts:** After several iterations fixing deadlocks and race
+conditions, the simulation is now running correctly to completion.
+
+**Final fixes that worked:** Replaced LinkedBlockingQueue with a
+lineLock mutex and tellerAvailable semaphore array using tryAcquire
+with a 5ms sleep fallback. Added currentCustomer[] array so the
+teller knows which customer ID to print in its messages. Expanded
+the handshake to 6 semaphore arrays for clean turn-taking with no
+race conditions. Added proper shutdown sequence in main() joining
+customers first then releasing customerArrived to wake idle tellers.
+
+**Reflection:** This project was significantly harder than project 1
+because the synchronization had to be precise in both directions.
+The hardest part was the line logic — getting customers to find a
+free teller without two customers grabbing the same one. Went
+through three different approaches: polling with tryAcquire,
+LinkedBlockingQueue, and finally lineLock with tryAcquire and sleep.
 
