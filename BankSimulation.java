@@ -26,16 +26,39 @@ public class BankSimulation {
     static int   tellersReady    = 0;                    
     static Semaphore tellerReadyCount = new Semaphore(1);
 
+static Random rand = new Random();
+
+    static {
+        for (int i = 0; i < NUM_TELLERS; i++) {
+            tellerReady[i]      = new Semaphore(0);
+            customerArrived[i]  = new Semaphore(0);
+            transactionReady[i] = new Semaphore(0);
+            transactionDone[i]  = new Semaphore(0);
+            customerLeaving[i]  = new Semaphore(0);
+        }
+    }
+
     //Teller Thread
     public static class Teller extends Thread {
         int id;
-
-        Teller(int id) {
-            this.id = id;
-        }
+Teller(int id) { this.id = id; }
 
         public void run() {
-            System.out.println("Teller " + id + " [Teller " + id + "]: is ready to serve");
+            try {
+                System.out.println("Teller " + id + " [Teller " + id + "]: is ready to serve");
+
+                // Count this teller as ready; if all 3 ready, open the bank
+                tellerReadyCount.acquire();
+                tellersReady++;
+                if (tellersReady == NUM_TELLERS) {
+                    System.out.println("Teller " + id + " [Teller " + id + "]: bank is now open");
+                    bankOpen.release(NUM_CUSTOMERS); // let all customers in
+                }
+                tellerReadyCount.release();
+
+                // TODO: serve customers (coming next session)
+
+            } catch (Exception e) { System.out.println(e); }
         }
     }
 
