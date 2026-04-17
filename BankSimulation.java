@@ -6,6 +6,26 @@ public class BankSimulation {
     static final int NUM_TELLERS = 3;
     static final int NUM_CUSTOMERS = 50;
 
+    // Shared Resources 
+    static Semaphore bankOpen      = new Semaphore(0); // opens when all 3 tellers ready
+    static Semaphore door          = new Semaphore(2); 
+    static Semaphore safe          = new Semaphore(2); 
+    static Semaphore managerLock   = new Semaphore(1); 
+    static Semaphore lineLock      = new Semaphore(1); 
+
+    // Per-teller semaphores 
+    static Semaphore[] tellerReady      = new Semaphore[NUM_TELLERS]; 
+    static Semaphore[] customerArrived  = new Semaphore[NUM_TELLERS]; 
+    static Semaphore[] transactionReady = new Semaphore[NUM_TELLERS]; 
+    static Semaphore[] transactionDone  = new Semaphore[NUM_TELLERS]; 
+    static Semaphore[] customerLeaving  = new Semaphore[NUM_TELLERS]; 
+
+    // Shared variables for teller-customer communication
+    static int[] transactionType = new int[NUM_TELLERS]; 
+    static int[] assignedTeller  = new int[1];         
+    static int   tellersReady    = 0;                    
+    static Semaphore tellerReadyCount = new Semaphore(1);
+
     //Teller Thread
     public static class Teller extends Thread {
         int id;
