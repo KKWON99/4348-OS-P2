@@ -31,3 +31,12 @@ Bank-open gate is in place — customers will block until all 3 tellers signal r
 Git kept rejecting pushes due to non-fast-forward errors. Remote was ahead of local.
 Fixed by running git pull --no-rebase before pushing. Also got stuck in vim when
 git opened the merge message editor. Escaped with :wq
+
+
+## April 17, 2026 0347
+
+**Thoughts:** Managing the direct interaction between 50 customers and 3 tellers requires precise 1-to-1 signaling. I need to ensure that when a customer walks up to a teller, the data passed between them is completely isolated from the other threads.
+
+**Session Accomplishments:** Implemented arrays of semaphores indexed by the teller ID  This setup allows a specific customer to synchronize perfectly with a specific teller. Also added shared integer arrays to track the transaction type and a mutex-protected variable to count how many tellers are currently ready.
+
+**Next Goal:** Implement the matching logic so a customer can safely find an available teller ID, assign themselves to it, and begin the semaphore handshake.
