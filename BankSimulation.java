@@ -44,6 +44,12 @@ public class BankSimulation {
             tellers[i].start();
         }
 
+        // Start tellers first
+        for (int i = 0; i < NUM_TELLERS; i++) {
+            tellers[i] = new Teller(i);
+            tellers[i].start();
+        }
+
         // Start customers
         for (int i = 0; i < NUM_CUSTOMERS; i++) {
             customers[i] = new Customer(i);
