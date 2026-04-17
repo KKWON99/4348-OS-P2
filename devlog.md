@@ -52,3 +52,28 @@ git opened the merge message editor. Escaped with :wq
 * Added the logic for the final ready teller to print "bank is now open" and release the `bankOpen` semaphore for all 50 customers.
 
 **next plan:** Update the `Customer` thread to wait for the `bankOpen` semaphore before trying to enter, implement the `door` capacity limit, and start building out the customer queue logic.
+
+
+## April 17, 2026 - 11:40
+**Thoughts:** The customer side needs to block on bankOpen before
+doing anything, then respect the door limit of 2 at a time.
+Finding a free teller requires a mutex around the search so two
+customers don't grab the same teller simultaneously.
+
+** error ** had the teller and the customer run mixed failed to run
+
+**Accomplishments:** Customer now sleeps 0-100ms before arriving,
+acquires bankOpen then door semaphore to enter. Uses lineLock mutex
+and tryAcquire to scan for a free teller. If none found, falls back
+to waiting on a teller slot. Customer prints which teller it selected.
+**Next:** Implement the full teller-customer handshake so they
+exchange transaction type and complete the transaction.
+
+
+
+
+
+
+
+
+
