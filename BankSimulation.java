@@ -114,9 +114,19 @@ Teller(int id) { this.id = id; }
                     myTeller = id % NUM_TELLERS;
                 }
 
-                System.out.println("Customer " + id + " [Customer " + id + "]: selects Teller " + myTeller);
 
-                // TODO: handshake with teller
+               System.out.println("Customer " + id + " [Customer " + id + "]: selects Teller " + myTeller);
+
+                customerArrived[myTeller].release();       // tell teller im here
+                transactionReady[myTeller].acquire();      // wait for teller to ask
+
+                transactionType[myTeller] = type;
+                System.out.println("Customer " + id + " [Customer " + id + "]: requests " + typeName);
+                transactionReady[myTeller].release();      // give transaction
+
+                transactionDone[myTeller].acquire();       // wait for teller to finish
+                System.out.println("Customer " + id + " [Customer " + id + "]: is leaving");
+                customerLeaving[myTeller].release();       // tell teller im gone
 
             } catch (Exception e) { System.out.println(e); }
         }
