@@ -39,4 +39,16 @@ git opened the merge message editor. Escaped with :wq
 
 **Session Accomplishments:** Implemented arrays of semaphores indexed by the teller ID  This setup allows a specific customer to synchronize perfectly with a specific teller. Also added shared integer arrays to track the transaction type and a mutex-protected variable to count how many tellers are currently ready.
 
-**Next Goal:** Implement the matching logic so a customer can safely find an available teller ID, assign themselves to it, and begin the semaphore handshake.
+**Next plan:** Implement the matching logic so a customer can safely find an available teller ID, assign themselves to it, and begin the semaphore handshake.
+
+
+## April 17, 2026 - 04:06
+
+**Thoughts:** I needed a clean way to ensure the bank doesn't open until all three tellers are fully initialized and ready. I also wanted to clean up the main method by handling array initialization earlier.
+
+**Session Accomplishments:** * Moved the initialization of the per-teller semaphore arrays into a class-level `static` block so they are ready before any threads start.
+* Added a `Random` instance for future timing requirements.
+* Implemented the initialization phase in the `Teller` thread's `run()` method. Using the `tellerReadyCount` mutex, the tellers now safely increment the `tellersReady` counter. 
+* Added the logic for the final ready teller to print "bank is now open" and release the `bankOpen` semaphore for all 50 customers.
+
+**next plan:** Update the `Customer` thread to wait for the `bankOpen` semaphore before trying to enter, implement the `door` capacity limit, and start building out the customer queue logic.
