@@ -13,3 +13,21 @@ public class BankSimulation {
         Teller(int id) {
             this.id = id;
         }
+
+        public void run() {
+            System.out.println("Teller " + id + " [Teller " + id + "]: is ready to serve");
+        }
+    }
+
+    // customer Thread
+    public static class Customer extends Thread {
+        int id;
+
+        Customer(int id) {
+            this.id = id;
+        }
+
+         public void run() {
+            System.out.println("Customer " + id + " [Customer " + id + "]: is entering the bank");
+        }
+    }
