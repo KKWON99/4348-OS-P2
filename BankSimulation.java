@@ -47,16 +47,15 @@ Teller(int id) { this.id = id; }
             try {
                 System.out.println("Teller " + id + " [Teller " + id + "]: is ready to serve");
 
-                // Count this teller as ready; if all 3 ready, open the bank
                 tellerReadyCount.acquire();
                 tellersReady++;
                 if (tellersReady == NUM_TELLERS) {
                     System.out.println("Teller " + id + " [Teller " + id + "]: bank is now open");
-                    bankOpen.release(NUM_CUSTOMERS); // let all customers in
+                    bankOpen.release(NUM_CUSTOMERS);
                 }
                 tellerReadyCount.release();
 
-                // TODO: serve customers (coming next session)
+                // TODO: serve customers
 
             } catch (Exception e) { System.out.println(e); }
         }
