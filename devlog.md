@@ -113,6 +113,8 @@ The project is nearing completion. The primary challenge was coordinating the "h
 The program is hanging/freezing after customers enter — tellers aren't finishing serving them
 The sample shows Customer X [Teller Y]: format but mine just shows Teller X [Teller X]:
 
+## issue found
+Keep having race condition that turns in to deadlock **1705**
 
 
 
