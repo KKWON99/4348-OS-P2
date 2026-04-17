@@ -57,16 +57,17 @@ Teller(int id) { this.id = id; }
 
                // serve customers one at a time
                 while (true) {
+                    // signal available, wait for customer
+                    tellerReady[id].release();
+                    customerArrived[id].acquire();
 
+                    // check if woken up because bank is done
                     customersServedLock.acquire();
                     if (customersServed >= NUM_CUSTOMERS) {
                         customersServedLock.release();
                         break;
                     }
                     customersServedLock.release();
-
-                    tellerReady[id].release();        // signal available
-                    customerArrived[id].acquire();    // wait for customer
 
                     System.out.println("Teller " + id + " [Teller " + id + "]: asks for transaction");
                     transactionReady[id].release();   // ask for transaction
@@ -179,5 +180,8 @@ Teller(int id) { this.id = id; }
         for (int i = 0; i < NUM_CUSTOMERS; i++) customers[i].join();
 
         System.out.println("Bank is now closed.");
+
+        // wake up any tellers still waiting so they can exit
+        for (int i = 0; i < NUM_TELLERS; i++) customerArrived[i].release();
     }
 }
