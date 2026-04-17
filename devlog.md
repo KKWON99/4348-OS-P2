@@ -80,7 +80,7 @@ Encountered a compilation error due to accidentally nesting method signatures in
 added so that it serves customers one at a time
 
 
-## April 18, 2026 - 12:20
+## April 17, 2026 - 12:20
 **Thoughts:** The handshake is a back-and-forth ping-pong between
 the customer and teller semaphores. Each step must be in the right
 order or both threads deadlock waiting on each other.
@@ -91,5 +91,16 @@ then signals back. Teller reads the type, processes it, signals
 transactionDone. Customer sees it done, prints leaving, signals
 customerLeaving so teller can serve the next one.
 **Next:** Add manager permission for withdrawals
+
+## April 17, 2026 - 13:20
+Session Accomplishments:
+
+Syntax Debugging: Fixed a structural error where the run() method was accidentally nested inside itself in the Customer class.
+
+Scope Resolution: Declared customersServed and customersServedLock as static variables within the BankSimulation class to fix "cannot find symbol" errors during compilation.
+
+Synchronization Verification: Verified that the safe semaphore correctly restricts access to only two tellers at once and that the bankOpen semaphore properly gates customer entry.
+
+Graceful Exit: Added System.exit(0) to ensure all threads terminate and the program closes cleanly after the 50th customer is served.
 
 
