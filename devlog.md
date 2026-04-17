@@ -80,6 +80,16 @@ Encountered a compilation error due to accidentally nesting method signatures in
 added so that it serves customers one at a time
 
 
-
+## April 18, 2026 - 12:20
+**Thoughts:** The handshake is a back-and-forth ping-pong between
+the customer and teller semaphores. Each step must be in the right
+order or both threads deadlock waiting on each other.
+**Accomplishments:** Teller loops indefinitely releasing tellerReady
+then waiting on customerArrived. Customer signals customerArrived,
+waits for transactionReady, writes transaction type to shared array,
+then signals back. Teller reads the type, processes it, signals
+transactionDone. Customer sees it done, prints leaving, signals
+customerLeaving so teller can serve the next one.
+**Next:** Add manager permission for withdrawals
 
 
