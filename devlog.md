@@ -70,7 +70,9 @@ to waiting on a teller slot. Customer prints which teller it selected.
 **Next:** Implement the full teller-customer handshake so they
 exchange transaction type and complete the transaction.
 
+## error  1150
 
+Encountered a compilation error due to accidentally nesting method signatures in the Customer class. Fixed the syntax and integrated the final synchronization logic.
 
 
 
