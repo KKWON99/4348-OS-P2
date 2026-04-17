@@ -3,29 +3,27 @@ import java.util.Random;
 
 public class BankSimulation {
 
-    static final int NUM_TELLERS = 3;
+    static final int NUM_TELLERS  = 3;
     static final int NUM_CUSTOMERS = 50;
 
-    // Shared Resources 
-    static Semaphore bankOpen      = new Semaphore(0); // opens when all 3 tellers ready
-    static Semaphore door          = new Semaphore(2); 
-    static Semaphore safe          = new Semaphore(2); 
-    static Semaphore managerLock   = new Semaphore(1); 
-    static Semaphore lineLock      = new Semaphore(1); 
+    static Semaphore bankOpen    = new Semaphore(0);
+    static Semaphore door        = new Semaphore(2);
+    static Semaphore safe        = new Semaphore(2);
+    static Semaphore managerLock = new Semaphore(1);
+    static Semaphore lineLock    = new Semaphore(1);
 
-    // Per-teller semaphores 
-    static Semaphore[] tellerReady      = new Semaphore[NUM_TELLERS]; 
-    static Semaphore[] customerArrived  = new Semaphore[NUM_TELLERS]; 
-    static Semaphore[] transactionReady = new Semaphore[NUM_TELLERS]; 
-    static Semaphore[] transactionDone  = new Semaphore[NUM_TELLERS]; 
-    static Semaphore[] customerLeaving  = new Semaphore[NUM_TELLERS]; 
+    static Semaphore[] tellerReady      = new Semaphore[NUM_TELLERS];
+    static Semaphore[] customerArrived  = new Semaphore[NUM_TELLERS];
+    static Semaphore[] transactionReady = new Semaphore[NUM_TELLERS];
+    static Semaphore[] transactionDone  = new Semaphore[NUM_TELLERS];
+    static Semaphore[] customerLeaving  = new Semaphore[NUM_TELLERS];
 
-    // Shared variables for teller-customer communication
     static int[] transactionType = new int[NUM_TELLERS];
+    static int[] currentCustomer = new int[NUM_TELLERS];
     static int   tellersReady    = 0;
-    static int   customersServed = 0; 
+    static int   customersServed = 0;
+    static Semaphore tellerReadyCount    = new Semaphore(1);
     static Semaphore customersServedLock = new Semaphore(1);
-    static Semaphore tellerReadyCount = new Semaphore(1);
     static Random rand = new Random();
 
     static {
@@ -38,30 +36,22 @@ public class BankSimulation {
         }
     }
 
-    //Teller Thread
     public static class Teller extends Thread {
         int id;
-Teller(int id) { this.id = id; }
+        Teller(int id) { this.id = id; }
 
         public void run() {
             try {
-                System.out.println("Teller " + id + " [Teller " + id + "]: is ready to serve");
+                System.out.println("Teller " + id + " []: ready to serve");
 
                 tellerReadyCount.acquire();
                 tellersReady++;
                 if (tellersReady == NUM_TELLERS) {
-                    System.out.println("Teller " + id + " [Teller " + id + "]: bank is now open");
                     bankOpen.release(NUM_CUSTOMERS);
                 }
                 tellerReadyCount.release();
 
-               // serve customers one at a time
                 while (true) {
-                    // signal available, wait for customer
-                    tellerReady[id].release();
-                    customerArrived[id].acquire();
-
-                    // check if woken up because bank is done
                     customersServedLock.acquire();
                     if (customersServed >= NUM_CUSTOMERS) {
                         customersServedLock.release();
@@ -69,73 +59,86 @@ Teller(int id) { this.id = id; }
                     }
                     customersServedLock.release();
 
-                    System.out.println("Teller " + id + " [Teller " + id + "]: asks for transaction");
-                    transactionReady[id].release();   // ask for transaction
-                    transactionReady[id].acquire();   // wait for answer
+                    System.out.println("Teller " + id + " []: waiting for a customer");
+                    tellerReady[id].release();
+                    customerArrived[id].acquire();
+
+                    // Re-check just in case we were woken up by the shutdown sequence
+                    customersServedLock.acquire();
+                    if (customersServed >= NUM_CUSTOMERS) {
+                        customersServedLock.release();
+                        break;
+                    }
+                    customersServedLock.release();
+
+                    int custId = currentCustomer[id];
+
+                    System.out.println("Teller " + id + " [Customer " + custId + "]: serving a customer");
+                    System.out.println("Teller " + id + " [Customer " + custId + "]: asks for transaction");
+
+                    // The Teller uses tellerReady to signal it is waiting for the transaction
+                    tellerReady[id].release(); 
+                    transactionReady[id].acquire(); 
 
                     int type = transactionType[id];
-                    String typeName = (type == 0) ? "deposit" : "withdraw";
-                    System.out.println("Teller " + id + " [Teller " + id + "]: handling " + typeName);
+                    String typeName = (type == 0) ? "deposit" : "withdrawal";
+                    System.out.println("Teller " + id + " [Customer " + custId + "]: handling " + typeName + " transaction");
 
-                    // withdraw requires manager permission
                     if (type == 1) {
-                        System.out.println("Teller " + id + " [Teller " + id + "]: going to manager");
+                        System.out.println("Teller " + id + " [Customer " + custId + "]: going to the manager");
                         managerLock.acquire();
-                        System.out.println("Teller " + id + " [Teller " + id + "]: with manager");
-                        Thread.sleep(5 + rand.nextInt(26)); // 5-30ms
-                        System.out.println("Teller " + id + " [Teller " + id + "]: leaving manager");
+                        System.out.println("Teller " + id + " [Customer " + custId + "]: getting manager's permission");
+                        Thread.sleep(5 + rand.nextInt(26));
+                        System.out.println("Teller " + id + " [Customer " + custId + "]: got manager's permission");
                         managerLock.release();
                     }
 
-                    // enter safe (max 2 tellers at once)
-                    System.out.println("Teller " + id + " [Teller " + id + "]: going to safe");
+                    System.out.println("Teller " + id + " [Customer " + custId + "]: going to safe");
                     safe.acquire();
-                    System.out.println("Teller " + id + " [Teller " + id + "]: in the safe");
-                    Thread.sleep(10 + rand.nextInt(41)); // 10-50ms
-                    System.out.println("Teller " + id + " [Teller " + id + "]: leaving the safe");
+                    System.out.println("Teller " + id + " [Customer " + custId + "]: enter safe");
+                    Thread.sleep(10 + rand.nextInt(41));
+                    System.out.println("Teller " + id + " [Customer " + custId + "]: leaving safe");
                     safe.release();
+
+                    System.out.println("Teller " + id + " [Customer " + custId + "]: finishes " + typeName + " transaction.");
+                    System.out.println("Teller " + id + " [Customer " + custId + "]: wait for customer to leave.");
 
                     transactionDone[id].release();
                     customerLeaving[id].acquire();
 
-                    // count this customer as served
                     customersServedLock.acquire();
                     customersServed++;
-                    System.out.println("Teller " + id + " [Teller " + id + "]: ready for next customer");
                     customersServedLock.release();
                 }
 
-                System.out.println("Teller " + id + " [Teller " + id + "]: going home");
+                System.out.println("Teller " + id + " []: leaving for the day");
 
             } catch (Exception e) { System.out.println(e); }
         }
     }
 
-    // customer Thread
     public static class Customer extends Thread {
         int id;
+        Customer(int id) { this.id = id; }
 
-        Customer(int id) {
-            this.id = id;
-        }
-            public void run() {
-    try {
-        int type = rand.nextInt(2);
-        String typeName = (type == 0) ? "deposit" : "withdraw";
+        public void run() {
+            try {
+                int type = rand.nextInt(2);
+                String typeName = (type == 0) ? "deposit" : "withdrawal";
 
-        // decide transaction before even going to bank
-        System.out.println("Customer " + id + " [Customer " + id + "]: wants to " + typeName);
+                System.out.println("Customer " + id + " []: wants to perform a " + typeName + " transaction");
 
-        // wait 0-100ms before heading to bank
-        Thread.sleep(rand.nextInt(101));
+                Thread.sleep(rand.nextInt(101));
 
-        bankOpen.acquire();
+                bankOpen.acquire();
                 door.acquire();
-                System.out.println("Customer " + id + " [Customer " + id + "]: is entering the bank");
+                System.out.println("Customer " + id + " []: going to bank.");
+                System.out.println("Customer " + id + " []: entering bank.");
+                System.out.println("Customer " + id + " []: getting in line.");
                 door.release();
 
-                // get in line, scan for free teller
-                System.out.println("Customer " + id + " [Customer " + id + "]: getting in line");
+                System.out.println("Customer " + id + " []: selecting a teller.");
+
                 lineLock.acquire();
                 int myTeller = -1;
                 for (int i = 0; i < NUM_TELLERS; i++) {
@@ -143,45 +146,50 @@ Teller(int id) { this.id = id; }
                 }
                 lineLock.release();
 
-                // no teller free, poll until one opens up
-                while (myTeller == -1) {
-                    for (int i = 0; i < NUM_TELLERS; i++) {
-                        if (tellerReady[i].tryAcquire()) { myTeller = i; break; }
-                    }
-                    if (myTeller == -1) Thread.sleep(1);
+                if (myTeller == -1) {
+                    tellerReady[id % NUM_TELLERS].acquire();
+                    myTeller = id % NUM_TELLERS;
                 }
 
+                System.out.println("Customer " + id + " [Teller " + myTeller + "]: selects teller");
+                System.out.println("Customer " + id + " [Teller " + myTeller + "] introduces itself");
 
-               System.out.println("Customer " + id + " [Customer " + id + "]: selects Teller " + myTeller);
+                currentCustomer[myTeller] = id;
 
-                customerArrived[myTeller].release();       // tell teller im here
-                transactionReady[myTeller].acquire();      // wait for teller to ask
+                // Signal arrival, then wait for the Teller to ask for the transaction
+                customerArrived[myTeller].release();
+                tellerReady[myTeller].acquire(); 
 
                 transactionType[myTeller] = type;
-                System.out.println("Customer " + id + " [Customer " + id + "]: requests " + typeName);
-                transactionReady[myTeller].release();      // give transaction
+                System.out.println("Customer " + id + " [Teller " + myTeller + "]: asks for " + typeName + " transaction");
+                transactionReady[myTeller].release();
 
-                transactionDone[myTeller].acquire();       // wait for teller to finish
-                System.out.println("Customer " + id + " [Customer " + id + "]: is leaving");
-                customerLeaving[myTeller].release();       // tell teller im gone
+                transactionDone[myTeller].acquire();
+                System.out.println("Customer " + id + " [Teller " + myTeller + "]: leaves teller");
+                System.out.println("Customer " + id + " []: goes to door");
+                System.out.println("Customer " + id + " []: leaves the bank");
+                customerLeaving[myTeller].release();
 
             } catch (Exception e) { System.out.println(e); }
         }
     }
 
-    // main
     public static void main(String[] args) throws InterruptedException {
         Teller[]   tellers   = new Teller[NUM_TELLERS];
         Customer[] customers = new Customer[NUM_CUSTOMERS];
 
-        for (int i = 0; i < NUM_TELLERS; i++) { tellers[i] = new Teller(i); tellers[i].start(); }
+        for (int i = 0; i < NUM_TELLERS; i++)   { tellers[i]   = new Teller(i);   tellers[i].start();   }
         for (int i = 0; i < NUM_CUSTOMERS; i++) { customers[i] = new Customer(i); customers[i].start(); }
-        for (int i = 0; i < NUM_TELLERS; i++)   tellers[i].join();
+
         for (int i = 0; i < NUM_CUSTOMERS; i++) customers[i].join();
 
-        System.out.println("Bank is now closed.");
+        // Safe shutdown: wake up any tellers stuck waiting for customers after all 50 have left
+        for (int i = 0; i < NUM_TELLERS; i++) {
+            customerArrived[i].release();
+        }
 
-        // wake up any tellers still waiting so they can exit
-        for (int i = 0; i < NUM_TELLERS; i++) customerArrived[i].release();
+        for (int i = 0; i < NUM_TELLERS; i++) tellers[i].join();
+
+        System.out.println("The bank closes for the day.");
     }
 }
