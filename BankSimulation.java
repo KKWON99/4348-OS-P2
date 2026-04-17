@@ -21,12 +21,10 @@ public class BankSimulation {
     static Semaphore[] customerLeaving  = new Semaphore[NUM_TELLERS]; 
 
     // Shared variables for teller-customer communication
-    static int[] transactionType = new int[NUM_TELLERS]; 
-    static int[] assignedTeller  = new int[1];         
-    static int   tellersReady    = 0;                    
+    static int[] transactionType = new int[NUM_TELLERS];
+    static int   tellersReady    = 0;
     static Semaphore tellerReadyCount = new Semaphore(1);
-
-static Random rand = new Random();
+    static Random rand = new Random();
 
     static {
         for (int i = 0; i < NUM_TELLERS; i++) {
@@ -69,7 +67,35 @@ Teller(int id) { this.id = id; }
             this.id = id;
         }
 
+
+
+
          public void run() {
+
+            public void run() {
+            try {
+                int type = rand.nextInt(2); // 0=deposit 1=withdraw
+                String typeName = (type == 0) ? "deposit" : "withdraw";
+
+                // wait between 0-100ms before going to bank
+                Thread.sleep(rand.nextInt(101));
+
+                // wait for bank to open, then enter through door (max 2 at once)
+                bankOpen.acquire();
+                door.acquire();
+                System.out.println("Customer " + id + " [Customer " + id + "]: is entering the bank");
+                door.release();
+
+                // find a free teller
+                lineLock.acquire();
+                int myTeller = -1;
+                for (int i = 0; i < NUM_TELLERS; i++) {
+                    if (tellerReady[i].tryAcquire()) {
+                        myTeller = i;
+                        break;
+                    }
+                }
+                lineLock.release();
             System.out.println("Customer " + id + " [Customer " + id + "]: is entering the bank");
         }
     }
